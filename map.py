@@ -218,6 +218,7 @@ D_MAP1 = {
 
 path = 'ncov_area.csv'
 df = pd.read_csv(path, encoding='UTF-8') # 读取数据文件到pandas
+df = df[~df['省'].isin(['台湾省', '澳门'])]
 df['市'] = df['市'].map(D_MAP1).fillna(df['市'])  # 根据手动准备的字典清洗命名不规范的名称
 pivoted = pd.pivot_table(df, index='市', values='新增确诊', aggfunc=sum) #汇总为数据透视表，行为地级市，值为新增确诊
 
@@ -280,13 +281,14 @@ for shapedict in m.counties_info:
 countynames_nodup = list(set(countynames)) #去除重复
 
 data = data.reindex(countynames_nodup) #根据adm_shp的县级市名重命名
+print(data)
 
 cmap1 = LinearSegmentedColormap.from_list('mycmap', ['green', 'white'])  # 定义负值colormap,绿白渐变
 vmax1 = 0
 vmin1 = min(data)
 norm1 = mpl.colors.Normalize(vmin=vmin1, vmax=vmax1) #正态分布
 cmap2 = LinearSegmentedColormap.from_list('mycmap', ['white', 'red'])  # 定义正值colormap,白红渐变
-vmax2 = 2000 # 累计确诊书阈值，高于1500都为最深红色
+vmax2 = 1500 # 累计确诊书阈值，高于1500都为最深红色
 vmin2 = 0
 norm2 = mpl.colors.Normalize(vmin=vmin2, vmax=vmax2)
 
@@ -298,13 +300,13 @@ for index, value in data.iteritems():
     else:
         colors[index] = cmap2(np.sqrt((value - vmin2) / (vmax2 - vmin2)))[:3]
 
-
+print(colors)
 #遍历每个地级市区域绘图
 for nshape, seg in enumerate(m.counties):
     color = rgb2hex(colors[countynames[nshape]]) # 颜色格式由RGB转为16位HEX
     poly = Polygon(seg, facecolor=color, edgecolor=color) # 绘制带有颜色的地级市多边形
     ax.add_patch(poly) # 将绘制多边形添加到画布上
-plt.title('COVID-19累计确诊人数疫情地图\n（截至2月23日）', fontproperties=MYFONT, fontsize=16, y=0.9)
+plt.title('COVID-19累计确诊人数疫情地图\n（截至2月27日）', fontproperties=MYFONT, fontsize=16, y=0.9)
 
 #生产渐变色legend colorbar
 # cax1 = fig.add_axes([0.18, 0.15, 0.36, 0.01])
@@ -326,5 +328,5 @@ ax.spines['bottom'].set_visible(False)
 ax.spines['left'].set_visible(False)
 
 #保存图片，去掉边缘白色区域，透明
-plt.savefig('heatmaps/COVID_19_map_0223.png', format='png', bbox_inches='tight', transparent=True, dpi=600)
+plt.savefig('heatmaps/COVID_19_map_0227.png', format='png', bbox_inches='tight', transparent=True, dpi=600)
 print('finished plot')
